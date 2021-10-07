@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -29,16 +30,32 @@ export function Home() {
   const [data, setData] = useState<LoginListDataProps>([]);
 
   async function loadData() {
-    const dataKey = '@savepass:logins';
-    // Get asyncStorage data, use setSearchListData and setData
+
+    try {
+      const dataKey = '@savepass:logins';
+      const loginsData = await AsyncStorage.getItem(dataKey);
+      
+      const loginsDataObject = loginsData? JSON.parse(loginsData) : [];
+      setData(loginsDataObject);
+      setSearchListData(loginsDataObject);
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error: não foi possível buscar os dados armazenados");
+    }
+    
   }
 
   function handleFilterLoginData() {
-    // Filter results inside data, save with setSearchListData
+    if(searchText !== ''){
+      const result = data.filter(login => login.service_name.includes(searchText));
+       setSearchListData(result);
+    }else{
+      setSearchListData(data);
+    }
   }
 
   function handleChangeInputText(text: string) {
-    // Update searchText value
+    setSearchText(text);
   }
 
   useFocusEffect(useCallback(() => {
